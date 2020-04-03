@@ -36,9 +36,11 @@ def user_pic(request):
     """A view that is vulnerable to malicious file access."""
 
     base_path = os.path.join(os.path.dirname(__file__), '../../badguys/static/images')
+    # request-data-injection.path-traversal.001.source
     filename = request.GET.get('p')
 
     try:
+        # request-data-injection.path-traversal.001.sink
         data = open(os.path.join(base_path, filename), 'rb').read()
     except IOError:
         if filename.startswith('/'):
@@ -65,14 +67,15 @@ def code_execution(request):
         except:
             pass
 
+        # request-data-injection.command-injection.001.source
         first_name = request.POST.get('first_name', '')
 
-        try:
-            # Try it the Python 3 way...
+        try:    # Try it the Python 3 way...
+            # request-data-injection.command-injection.001.sink
             exec(base64.decodestring(bytes(first_name, 'ascii')))
         except TypeError:
-            # Try it the Python 2 way...
-            try:
+            try:    # Try it the Python 2 way...
+                # request-data-injection.command-injection.001.sink
                 exec(base64.decodestring(first_name))
             except:
                 pass
@@ -174,15 +177,19 @@ def csrf_image(request):
 ## 10 - Unvalidated Redirects & Forwards
 
 def unvalidated_redirect(request):
+    # request-data-injection.open-redirect.001.source
     url = request.GET.get('url')
+    # request-data-injection.open-redirect.001.sink
     return redirect(url)
 
 
 def unvalidated_forward(request):
+    # request-data-injection.code-execution.001.source
     forward = request.GET.get('fwd')
     function = globals().get(forward)
 
     if function:
+        # request-data-injection.code-execution.001.sink
         return function(request)
 
     env = {'fwd': forward}
